@@ -1,0 +1,19 @@
+class testNetwork()
+  require 'PeerSearch'
+  require 'BuildNetwork'
+  #Searching
+  ## eg Charlie searching for Bob
+
+  Charlie.Search('Bob',nil)       #giving it nil to get rid of errors
+  ##New Node in Network
+
+  Dan=PeerSearch.new(4444)
+  Dan.CreateSocket
+  Dan.updateHashTable('Dan', 4444)
+  Dan.LISTEN()
+  #Dan knows id of Anna
+  bootstrap_id=HashCode('Anna')
+  Dan.JoinNetwork(bootstrap_id, Dan.createmyid('Dan'))
+  puts 'Network tested'
+ end
+  test=testNetwork.new
