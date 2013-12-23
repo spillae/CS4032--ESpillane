@@ -1,0 +1,218 @@
+$hashtable = {}
+require 'timeout'
+def CreateTables  #See readme file. This create tables, avoid JOINING until the rest of the elements are working correctly
+  updateHashTable('Anna')
+  updateHashTable('Bob')
+  updateHashTable('Charlie')
+  a= FindIdfromWord('Anna') #anna is bootstrap?
+  b= FindIdfromWord('Bob')
+  c= FindIdfromWord('Charlie')
+  $route_table={}
+  $route_table[a]='1111'
+  $route_table[b]='2222'
+  $route_table[c]='3333'
+end
+def HashCode(str)
+  #String str
+  hashfn=0
+  l=str.length
+  i=0
+  while i<l do
+    hashfn=hashfn*31+str[i].ord#.to_i
+    i+=1
+  end
+  #puts hashfn.abs
+  return hashfn.abs
+
+###PeerSearch class
+class PeerSearch
+  def initialize(port)
+    # Instance variables
+    @port=port#@DatagramSocket = name
+  end
+  def CreateSocket
+    require 'socket'
+    $s = UDPSocket.new
+    $s.bind('localhost', @port)
+    puts "Socket created, local host on port #{@port} "
+
+  end
+
+def createmyid(word) #create nodes own id from their word
+    my_id=HashCode(word)
+    $my_id=my_id#
+    end
+
+def updateHashTable(word, port)
+  id=HashCode(word)
+  $hashtable[word]=id
+  $route_table[id]=port
+end
+
+
+def FindIdfromWord(word) #find node id from node_word
+  id=$hashtable[word]
+  return id
+end
+
+def FindPortfromID (str)
+  port=$route_table(str)
+  return port
+end
+
+def JoinNetwork(bootstrap, joinerid) #send a join network to known bootstrap
+  targetport=FindPortfromID(joinerid)
+  $s.send("JOINING_NETWORK #{$my_id} #{bootstrap} localhost, ip", 0, 'localhost', targetport)
+  end
+
+def ReceivedJoinMessage(text)        #if recieve a join network request: updates route and hashtables, forwards on relay
+  joiner_id=text.split[1] #puts joiner_id_word.length
+  target_id=text.split[2]
+  joiner_port=text.split[3]  #text.split.last #return address
+  $route_table.each do |id, port|
+    $s.send("JOINING_NETWORK_RELAY #{joiner_id} #{id} #{$my_id} #{$my_id}", 0, 'localhost', port)
+    while @text= s.gets && @text[1]="ROUTING_INFO"
+      sender_port, text=s.recvfrom(40)
+      sender_id=$route_table(sender_port)
+      $s.send("ROUTING_INFO_RELAY #{joiner_id} #{id} #{$my_id} #{sender_idid} #{@text}", 0, 'localhost', joiner_port)                                                     _
+     end
+  end
+end
+
+def SaveResponse(response) #any responses from SEARCH messages, save in output text file
+  puts "response: #{response}"
+  File.open('C:\users\emma\desktop\info.txt') { |s| response= s.write }
+end
+
+def DeleteNode(nodeport) #if get a LEAVING_NETOWRK request of no ACK from a PPING
+  node_id=$route_table[nodeport]
+  $hashtable.delete(node_id)          #remove node Id from hashtable
+  $route_table.delete(nodeport)       #Remove the Node Port from routing table
+  end
+
+def SendAPing(target)
+  puts("i send a ping to #{target}")
+      ## Send PING target_id sender_id
+  $s.send("PING #{target} #{$my_id}", 0, 'localhost', target)
+          ## SendAPing function waits for ACK ##
+  text, sender = $s.recvfrom(42)
+    if(text.split[1]!="ACK")
+      status = Timeout::timeout(10) {
+      puts "#{target} Didnt return Ack from PING"
+      DeleteNode(target)
+      return 0 # for functions calling SendAPing, they know no response from node
+      }
+  else
+    return 1
+  end
+end
+
+def SendAACK(target_port)
+  $s.send("ACK  #{target_id} 'localhost' myport",0, 'localhost', target_port)
+end
+
+def SendResponse(word, target_port) #if node gets a SEARCH request
+  target_id=$route_table[target_port]
+  File.open('C:\users\emma\desktop\info.txt') { |s| @text= s.read }
+  $s.send("SEARCH_RESPONSE #{word} #{target_id} #{$my_id}  #{@text}",0, 'localhost', target_port)
+
+end
+
+def Search(word) #if node wants to send a SEARCH request
+  #Only have word, need to look up the target_id and then the target_port
+  target_id=$hashtable[word]    #Look up the target_id from the hash_table, which contains word->id
+  target_port=$route_table[target_id]     #Look up the target_port from the route_table, which contains id->port
+        ## Send SEARCH MESSAGE word target_id sender_id
+  puts "Need to send to #{target_port}"
+  $s.send("SEARCH #{word} #{target_id} #{$my_id}",0, 'localhost', target_port)
+              ##  Waiting for SEARCH_RESPONCE    ##
+  #text, sender = $s.recvfrom(100)
+
+  if(text.split[0]!="SEARCH_RESPONSE" && sender[1]!=target_port)
+    status = Timeout::timeout(5){
+    # if search response isn't got from the target node
+    x=SendAPing(target_port, my_id)
+    if x==1 # ACK was recieved from Ping
+      Search(word, route_table, my_id)     #resend SEARCH message
+      end}
+  else ##Did receive SEARCH_RESPONSE
+    #texxt= SEARCH_RESPONSE   word  target_id/my_id   sender_id   response
+    response=text.split.last
+    SaveResponse(response)
+  end
+end
+
+def LISTEN()
+  loop{     # While listening
+    text, sender = $s.recvfrom(42)
+#text="JOINING_NETWORK #{c}  #{a} 2222" #text, sender = $s.recvfrom(42)
+    if (@type=="JOINING_NETWORK")
+      ReceivedJoinMessage(text)
+    end   #JOINING_NETWORK
+#text="ROUTING_INFO gateway  target_id ip of sender 'route_table'
+    if (@type=="ROUTING_INFO")
+      #If receive routing information, include it in the current routing table
+      route_info=text.split[5]
+      new_route_table=route_table+route_info
+      route_table=new_route_table
+    end
+    if (@type=="PING")
+      SendAACK(sender[1])
+    end
+    if (@type=="LEAVING_NETWORK")
+      DeleteNode(sender[1])
+    end
+    if (@type=="SEARCH")
+      SendResponse(word, sender[1])
+    end
+
+    if (@type=="SEARCH_RESPONSE")
+      SaveResponse(text)
+    end
+
+    if (@type=="ACK")
+      puts "Got an ACK from #{sender[1]}"
+    end
+    end
+
+  }
+  end
+#min_location find the minimum value in an array
+def min_location(array)
+    #minimum = starting
+    starting=array[1]
+    ending=array[array.length-1]
+    for i in starting ..ending
+      if array[i] < array[minimum]
+        minimum = i
+        puts minimum
+      end
+    end
+    return minimum
+  end
+#Goes through the routing table nd finds closest to target
+def Routing(target_word)
+    len=$hashtable.length
+    i=1
+    difference=Array.new
+    for i in len do
+      search_id=HashCode(target_word)
+      puts $route_table #$hashtable.each {puts word+' '}
+
+      $route_table.each do |id, port|
+        difference[i]= search_id-id
+        i+=1
+        @index=min_location(difference)
+      end
+      puts "Target is #{$route_table(@index) }"
+    end
+
+  end
+
+
+end #END OF CLASS
+
+
+
+
+
