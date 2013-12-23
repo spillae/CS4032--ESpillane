@@ -1,0 +1,51 @@
+class BuildNetwork
+  #$hashtable = {}
+  require 'timeout'
+  require 'PeerSearch'
+=begin
+  =begin
+
+        def CreateTables
+          updateHashTable('Anna')
+          u pdateHashTable('Bob')
+          updateHashTable('Charlie')
+          a= FindIdfromWord('Anna') #anna is bootstrap?
+          b=FindIdfromWord('Bob')
+          c= FindIdfromWord('Charlie')
+          $route_table={}
+          $route_table[a]='1111'
+          $route_table[b]='2222'
+          $route_table[c]='3333'
+        end
+        def HashCode(str)
+          #String str
+          hashfn=0
+          l=str.length
+          i=0
+          while i<l do
+            hashfn=hashfn*31+str[i].ord#.to_i
+            i+=1
+          end
+          #puts hashfn.abs
+          return hashfn.abs
+        end
+
+=end
+
+  CreateTable  ##Saves /joining network if have hash table and routing table  predefined
+  ##Create 3 peer network
+  Anna=PeerSearch.new(1111)
+  Anna.CreateSocket
+  #Anna.updateHashTable('Anna', 1111) create tables covers this node
+  Anna.LISTEN()
+
+  Bob=PeerSearch.new(2222)
+  Bob.CreateSocket
+  #Bob.updateHashTable('Bob', 2222) create tables covers this node
+  Bob.LISTEN()
+
+  Charlie=PeerSearch.new(3333)
+  Charlie.CreateSocket
+  #Bob.updateHashTable('Charlie', 3333) create tables covers this node
+  Charlie.LISTEN()
+end
