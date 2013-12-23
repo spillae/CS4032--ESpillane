@@ -1,0 +1,87 @@
+Emma Spillane
+09619020
+23/12/13
+
+Please find in respositry
+class PeerSearch
+class BuildNetowrk
+class test
+
+
+####Class  PeerSearch ####
+#HC is the Hash of the word to get id
+
+I have a function CreateTable that creates a universal hashtable: $hashtable: 'word->Id and $routetable: Id->Port In all nodes, with known Peers.
+This is to avoid JOINING until the rest of the functionality is working.
+eg. 	
+def CreateTables
+	updateHashTable('Anna')
+	updateHashTable('Bob')
+	$route_table={}
+	$route_table[HC(Anna)]='1111'
+	$route_table[HC(Bob)]='2222'
+def HashCode
+	#implemented as defined in the Spec
+
+class PeerSearch(port)
+Has all functionality to Create Socket, Delete a Node, Search, SendAPing, SendAAck
+Initializing a Peer
+	CreateTables
+ 	Anna=PeerSearch.new(1234, HC'anna') #Takes port and HashCodeof Anna
+ 	Anna.CreateSocket	createing a Socket
+	Anna.LISTEN()
+	#Anna.Search('Bob')
+
+def Search(word)
+	targetid=HC(word)
+	targetport=routetable(targetid)
+	socket.sends('SEARCH #word #targetid #myid)
+	socket.listens #for a SEARCH_RESPONSE
+if timeout | no SEARCHRESPONSE
+	SendAPing
+else 
+	puts 'response #response'
+
+
+def LISTEN(void)
+  loop{     # While listening
+    text, sender = $s.recvfrom(42)
+    if (@type=="JOINING_NETWORK") 	ReceivedJoinMessage(text) sends relay messages to all in routingtable
+    if (@type=="ROUTING_INFO")   	update routing table
+    if (@type=="PING")		 	SendAACK(port)
+    if (@type=="LEAVING_NETWORK")	DeleteANode(port)
+    if (@type=="SEARCH")		SendResponse
+    if (@type=="SEARCH_RESPONSE")	SaveResponse(response)
+    if (@type=="ACK")			#do nothing
+  }
+##This function was never called, however this is how I would go about finding the id closest to the target
+def Routing(targetword)
+	targetid=HC(word)
+	for all i
+		difference[i]=Routingtable[i]-targetid
+	index=min_location(difference) # fn to find the index of min value in difference
+	target=Routingtable(index)
+
+def ReceivedJoinMessage(text) 
+	get joiner id, target id and joinerport from text
+	for all i
+	s.send "JOINING_NETOWRK_RELAY" to routetable[i]
+	s.listen for ROUTING_INFO
+	s.send ROUTING_INFO_RELAY to joiner
+
+
+###Class  BuildNetwork ##### 
+This class requires the PeerSearch above
+	CreateTable
+	Creates 3 Nodes, Anna, Bob, Charlie
+eg.	Anna.PeerSearch.new(port)
+	Anna.CreateSocket
+	Anna.Listen
+
+###Class  testNetwork
+	Tests the search functionality in PeerSearch
+	Charlie.Search('Bob')
+Also creates new node to join Network
+	Dan.PeerSearch.new(port)
+	Dan.JoinNetwork('Anna', Dan.my_id) #Anna is the bootstrap in this case
+	
